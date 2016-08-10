@@ -29,6 +29,7 @@ User Function MetaDados()
 	//****************************************************************/
 Return (Nil)
 
+/********************************************************************************************/
 User Function SigaArea()
 	Local oArea
 	DbSelectArea('SC6')
@@ -58,3 +59,59 @@ User Function SigaArea()
 	oArea:backArea({'SC5'})
 
 Return(Nil)
+/********************************************************************************************/
+
+User Function SqlUtil()
+Local oSql 	:= SqlUtil():newSqlUtil()
+Local nX	:= 0
+	
+	/*EXEMPLO 01*/
+	 /*Definir a tabela*/
+	 oSql:addFromTab('SZS')
+	 /*Os campos da tabela*/
+	 oSql:addCampos({'ZS_CODIGO','ZS_NOME'})
+	 /*As condições podem ser escritas numa mesma string, bem como adicionadas uma a uma*/
+	 oSql:addWhere("ZS_ATIVO = 'S'")
+	 /*Por default o segundo paramtero é AND, não precisa informar caso seja OR informar*/
+	 oSql:addWhere("ZS_CODIGO = '049'",'AND')
+	 /*Definir a ordem recebe array com a ordem desejada e o segundo parametro recebe o tipo da
+	 ordem ASC ou DESC*/
+	 oSql:addOrder({'ZS_CODIGO'},'DESC')
+	 /*Executar o select*/
+	 oSql:QrySelect()
+	
+	/*Testar o sucesso do select*/
+	if oSql:lOk	
+		/*Mostra a query que foi enviada*/
+		MessageBox("Query enviada: " + oSql:qryForSend , "Aviso",48)
+		/*Mostra quantos registros retornaram*/
+		MessageBox("Consulta Retornou: " + cValToChar(oSql:nRegCount) , "Aviso",48)
+		
+		/*Percorrer os registro*/
+		For nX := 1 To oSql:nRegCount
+			/*O Retorno sempre gera um objeto "oSql:oRes" onde cada registro fica em uma posição
+			e o conteudo é acessado pelo mesmo nome dos campos, abaixo estamos exibindo o campo nome
+			de todos os retornos da busca*/
+			MessageBox(oSql:oRes[nX]:ZS_NOME , "Aviso",48)	
+		Next nX
+	Else
+		/*Caso exista algum erro exibir a mensagem de erro*/
+		MessageBox(oSql:cMsgErro)
+	EndIf
+	
+	/*EXEMPLO 02 Todos os metodos retornam o self desta forma podemos encadiar os metodos conforme exemplo
+	abaixo, repare que as condições where estão definidas em uma unica chamada ao addWhere */
+	if oSql:addFromTab('SZS'):addCampos({'ZS_CODIGO','ZS_NOME'}):addWhere("ZS_ATIVO = 'S' AND ZS_CODIGO = '049'"):QrySelect():lOk
+		
+		MessageBox("Query enviada: " + oSql:qryForSend , "Aviso",48)
+		MessageBox("Consulta Retornou: " + cValToChar(oSql:nRegCount) , "Aviso",48)
+		For nX := 1 To oSql:nRegCount
+			MessageBox(oSql:oRes[nX]:ZS_NOME , "Aviso",48)	
+		Next nX
+	Else
+		MessageBox(oSql:cMsgErro)
+	EndIf
+	
+Return (Nil)
+
+
