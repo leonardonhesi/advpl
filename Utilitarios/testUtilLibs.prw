@@ -65,7 +65,18 @@ User Function SqlUtil()
 Local oSql 	:= SqlUtil():newSqlUtil()
 Local nX	:= 0
 	
-	/*EXEMPLO 01*/
+	/*EXEMPLO 01 Passando a query completa como parametro*/
+	if oSql:QryToDb( "SELECT * FROM SZ3010" ):lOk
+	MessageBox("Query enviada: " + oSql:qryForSend , "Aviso",48)
+		MessageBox("Consulta Retornou: " + cValToChar(oSql:nRegCount) , "Aviso",48)
+		For nX := 1 To oSql:nRegCount
+			MessageBox(oSql:oRes[nX]:Z3_DESC , "Aviso",48)	
+		Next nX
+	Else
+		MessageBox(oSql:cMsgErro)
+	EndIf
+
+	/*EXEMPLO 02*/
 	 /*Definir a tabela*/
 	 oSql:addFromTab('SZS')
 	 /*Os campos da tabela*/
@@ -78,10 +89,7 @@ Local nX	:= 0
 	 ordem ASC ou DESC*/
 	 oSql:addOrder({'ZS_CODIGO'},'DESC')
 	 /*Executar o select*/
-	 oSql:QrySelect()
-	
-	/*Testar o sucesso do select*/
-	if oSql:lOk	
+	 if oSql:QrySelect():lOk	
 		/*Mostra a query que foi enviada*/
 		MessageBox("Query enviada: " + oSql:qryForSend , "Aviso",48)
 		/*Mostra quantos registros retornaram*/
@@ -96,10 +104,10 @@ Local nX	:= 0
 		Next nX
 	Else
 		/*Caso exista algum erro exibir a mensagem de erro*/
-		MessageBox(oSql:cMsgErro)
+		MessageBox(oSql:cMsgErro, "Aviso",48)
 	EndIf
 	
-	/*EXEMPLO 02 Todos os metodos retornam o self desta forma podemos encadiar os metodos conforme exemplo
+	/*EXEMPLO 03 Todos os metodos retornam o self desta forma podemos encadiar os metodos conforme exemplo
 	abaixo, repare que as condições where estão definidas em uma unica chamada ao addWhere */
 	if oSql:addFromTab('SZS'):addCampos({'ZS_CODIGO','ZS_NOME'}):addWhere("ZS_ATIVO = 'S' AND ZS_CODIGO = '049'"):QrySelect():lOk
 		
@@ -109,7 +117,7 @@ Local nX	:= 0
 			MessageBox(oSql:oRes[nX]:ZS_NOME , "Aviso",48)	
 		Next nX
 	Else
-		MessageBox(oSql:cMsgErro)
+		MessageBox(oSql:cMsgErro, "Aviso",48)
 	EndIf
 	
 Return (Nil)

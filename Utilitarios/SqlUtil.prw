@@ -40,6 +40,7 @@ class SqlUtil
 	method zeroAll()
 	method resToObj()
 	method trataTipo()
+	method QryToDb()
 
 endclass
 
@@ -52,7 +53,7 @@ Metodo construtor
 /*/
 method newSqlUtil() class SqlUtil
 	::clearWhere()
-	::lOk := .T.
+	::lOk := .F.
 	return(self)
 
 	/*/{Protheus.doc} zeroAll()
@@ -63,12 +64,13 @@ method newSqlUtil() class SqlUtil
 	/*/
 method zeroAll() class SqlUtil
 	::clearWhere()
-	::aCampos 	:= {}
-	::cCmpOrdem	:= ""
-	::cFromTab 	:= ""
-	::cFromStr 	:= ""
-	::lOk		:= .T.
-	::cMsgErro	:= ""
+	::aCampos 		:= {}
+	::cCmpOrdem		:= ""
+	::cFromTab 		:= ""
+	::cFromStr 		:= ""
+	//::cMsgErro		:= ""
+	//::nRegCount		:= 0
+	//::qryForSend	:= ""
 	return(self) 
 
 	/*/{Protheus.doc} addCampos()
@@ -251,16 +253,18 @@ return(self)
 @description Permite realizar um select e retonar os dados do banco
 /*/
 method QrySelect() class SqlUtil
-	Local cNomTab 	:= "SQL_"+StrTran(Time(),':','')
+	Local cArea 	:= GetNextAlias()
 	Local cQuery	:= ""
 	Local nX 		:= 0
 	Local aDados	:= {}
 	Local selAre	:= ""
-	Local cQryJson	:= ""
 	
-	If Select( "QrySel") > 0
-		QrySel->(dbcloseArea())
-		FErase( "QrySel" + GetDbExtension())
+	::lOk 			:= .T.
+	::cMsgErro		:= ""
+	
+	If Select( cArea) > 0
+		(cArea)->(dbcloseArea())
+		FErase( cArea + GetDbExtension())
 	EndIf
 	cQuery 	:= " SELECT  "
 	//CAMPOS
@@ -282,45 +286,70 @@ method QrySelect() class SqlUtil
 	cQuery := ChangeQuery(cQuery)
 	::qryForSend := cQuery
 
-	TCQUERY cQuery NEW ALIAS "QrySel"		
+	TCQUERY cQuery NEW ALIAS (cArea)		
 
-	DbSelectArea("QrySel")
-	QrySel->(DbGotop())
-	lRet := !QrySel->(Eof())
+	DbSelectArea(cArea)
+	(cArea)->(DbGotop())
+	lRet := !(cArea)->(Eof())
 
 	if !lRet
 		::lOk := .F.
 		::cMsgErro := "[AVISO] - Consulta não retornou dados, utilize propriedade qryForSend, para visualizar a query enviado ao banco "
 	Else
-		::nRegCount := 0
-		nT := Len(DbStruct())
-		cQryJson += '{"QRY": [' 
-		While !QrySel->(Eof())
-			cQryJson +='{'
-			For nI := 1 To nT
-				cCmp := field(nI)
-				cQryJson += '"' + cCmp + '" : ' + '"' +  ::trataTipo(&cCmp) + '"'	
-				If nI != nT
-					cQryJson += ','
-				EndIf
-			Next nI
-			::nRegCount ++
-			QrySel->(DbSkip())
-			If !QrySel->(Eof())
-				cQryJson += '},'
-			Else
-				cQryJson += '}'
-			Endif
-		EndDo
-		cQryJson += ']}'
-		::resToObj(cQryJson)
+		//TRATAR RETORNO POSITIVO
+		retQryOk(self, cArea)
 	EndIf
-	If Select( "QrySel") > 0
-		QrySel->(dbcloseArea())
-		FErase( "QrySel" + GetDbExtension())
+	If Select( cArea) > 0
+		(cArea)->(dbcloseArea())
+		FErase( cArea + GetDbExtension())
 	End If	
 
-	::zeroAll()
+return(self)
+
+
+/*/{Protheus.doc} QryToDb()
+@author bolognesi
+@since 29/08/2016 
+@version 1.0
+@description Recebe a String da Query Inteira, e executa no banco
+/*/
+method QryToDb(cQuery) class SqlUtil
+	Local cArea	:= GetNextAlias()
+	
+	Default cQuery 	:= " "
+	::lOk 		:= .T.
+	::cMsgErro	:= ""
+	
+	If Empty(cQuery)
+		::lOk := .F.
+		::cMsgErro := "[AVISO] - Informe um string contendo a query a ser enviado ao banco. "
+	Else
+		If Select( cArea) > 0
+			(cArea)->(dbcloseArea())
+			FErase( cArea + GetDbExtension())
+		EndIf
+		
+		cQuery := ChangeQuery(cQuery)
+		::qryForSend := cQuery
+	
+		TCQUERY cQuery NEW ALIAS (cArea)		
+	
+		DbSelectArea((cArea))
+		(cArea)->(DbGotop())
+		lRet := !(cArea)->(Eof())
+	
+		if !lRet
+			::lOk := .F.
+			::cMsgErro := "[AVISO] - Consulta não retornou dados, utilize propriedade qryForSend, para visualizar a query enviado ao banco "
+		Else
+			//TRATAR RETORNO POSITIVO
+			retQryOk(self,cArea)
+		EndIf
+		If Select( cArea ) > 0
+			(cArea)->(dbcloseArea())
+			FErase( cArea + GetDbExtension())
+		End If	
+	EndIf
 return(self)
 
 /*/{Protheus.doc} resToObj()
@@ -352,7 +381,44 @@ method trataTipo(dado) class SqlUtil
 	tipo := ValType(dado)
 	//TODO Obter tipos dos dados pelo X3???
 	If tipo $ 'C'
-		cRet := Alltrim(dado)
-	Else 
+		cRet := '"' +  Alltrim(dado) + '"'
+	ElseIf tipo $ 'N'
+	 	cRet	:= ' ' + Alltrim(cValToChar(dado)) + ' '
 	EndIf
 return cRet
+
+/*/{Protheus.doc} resToObj()
+@author bolognesi
+@since 29/08/2016 
+@version 1.0
+@description O retorno do SQL, transformado em Objeto
+/*/
+static function retQryOk(oSelf, cArea)
+	Local nT 		:= 0
+	Local nI		:= 0
+	Local cQryJson	:= ""
+	
+	oSelf:nRegCount := 0
+		nT := Len(DbStruct())
+		cQryJson += '{"QRY": [' 
+		While !(cArea)->(Eof())
+			cQryJson +='{'
+			For nI := 1 To nT
+				cCmp := field(nI)
+				cQryJson += '"' + cCmp + '" : ' + oSelf:trataTipo(&cCmp)	
+				If nI != nT
+					cQryJson += ','
+				EndIf
+			Next nI
+			oSelf:nRegCount ++
+			(cArea)->(DbSkip())
+			If !(cArea)->(Eof())
+				cQryJson += '},'
+			Else
+				cQryJson += '}'
+			Endif
+		EndDo
+		cQryJson += ']}'
+		oSelf:resToObj(cQryJson)
+		oSelf:zeroAll()
+return(.T.)
