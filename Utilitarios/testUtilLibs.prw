@@ -75,7 +75,7 @@ Local nX	:= 0
 	Else
 		MessageBox(oSql:cMsgErro)
 	EndIf
-
+	
 	/*EXEMPLO 02*/
 	 /*Definir a tabela*/
 	 oSql:addFromTab('SZS')
@@ -84,7 +84,7 @@ Local nX	:= 0
 	 /*As condições podem ser escritas numa mesma string, bem como adicionadas uma a uma*/
 	 oSql:addWhere("ZS_ATIVO = 'S'")
 	 /*Por default o segundo paramtero é AND, não precisa informar caso seja OR informar*/
-	 oSql:addWhere("ZS_CODIGO = '049'",'AND')
+	 oSql:addWhere("ZS_CODIGO <> '' ",'AND')
 	 /*Definir a ordem recebe array com a ordem desejada e o segundo parametro recebe o tipo da
 	 ordem ASC ou DESC*/
 	 oSql:addOrder({'ZS_CODIGO'},'DESC')
@@ -109,7 +109,7 @@ Local nX	:= 0
 	
 	/*EXEMPLO 03 Todos os metodos retornam o self desta forma podemos encadiar os metodos conforme exemplo
 	abaixo, repare que as condições where estão definidas em uma unica chamada ao addWhere */
-	if oSql:addFromTab('SZS'):addCampos({'ZS_CODIGO','ZS_NOME'}):addWhere("ZS_ATIVO = 'S' AND ZS_CODIGO = '049'"):QrySelect():lOk
+	if oSql:addFromTab('SZS'):addCampos({'ZS_CODIGO','ZS_NOME'}):addWhere("ZS_ATIVO = 'S' AND ZS_CODIGO <> ''"):QrySelect():lOk
 		
 		MessageBox("Query enviada: " + oSql:qryForSend , "Aviso",48)
 		MessageBox("Consulta Retornou: " + cValToChar(oSql:nRegCount) , "Aviso",48)
@@ -121,5 +121,3 @@ Local nX	:= 0
 	EndIf
 	
 Return (Nil)
-
-
