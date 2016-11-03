@@ -34,6 +34,8 @@ class cbcSendEmail
 	method setcSubject()
 	method getcBody()
 	method setcBody()
+	method setPriority()
+	method setConfReader()
 
 	method getErrTxt()
 	method isErr()
@@ -141,6 +143,21 @@ method addAtach(cPath, cArquivo) class cbcSendEmail
 return (self)
 
 /*Getters e Setters*/
+
+method setConfReader(lConf) class cbcSendEmail
+Default lConf := .F.
+::oMessage:SetConfirmRead(lConf)
+return (self)
+
+method setPriority(nPri) class cbcSendEmail
+Default nPri := 0
+	If nPri < 1 .Or.  nPri > 5
+		::oMessage:nXPriority := 3
+	Else
+		::oMessage:nXPriority := nPri
+	EndIF 
+return (self)
+
 method getFrom() class cbcSendEmail
 return (::oMessage:cFrom)
 method setFrom(cFrm) class cbcSendEmail

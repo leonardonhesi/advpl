@@ -155,6 +155,8 @@ User Function vaiEmail()
 		oEmail:setcBcc("")
 		oEmail:setcSubject("[EMPRESA] - Assunto do Email. ")
 		oEmail:setcBody("Texto Simples a exibir no corpo do email")			
+		oEmail:setPriority(5) // 1 até 5
+		oEmail:setConfReader(.T.) //Confirmação de leitura
 
 		If ! oEmail:addAtach('\arquivo.txt'):lOk
 			lOk 	:= oEmail:lOk
