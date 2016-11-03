@@ -62,12 +62,12 @@ Return(Nil)
 /********************************************************************************************/
 
 User Function SqlUtil()
-Local oSql 	:= SqlUtil():newSqlUtil()
-Local nX	:= 0
-	
+	Local oSql 	:= SqlUtil():newSqlUtil()
+	Local nX	:= 0
+
 	/*EXEMPLO 01 Passando a query completa como parametro*/
 	if oSql:QryToDb( "SELECT * FROM SZ3010" ):lOk
-	MessageBox("Query enviada: " + oSql:qryForSend , "Aviso",48)
+		MessageBox("Query enviada: " + oSql:qryForSend , "Aviso",48)
 		MessageBox("Consulta Retornou: " + cValToChar(oSql:nRegCount) , "Aviso",48)
 		For nX := 1 To oSql:nRegCount
 			MessageBox(oSql:oRes[nX]:Z3_DESC , "Aviso",48)	
@@ -75,26 +75,26 @@ Local nX	:= 0
 	Else
 		MessageBox(oSql:cMsgErro)
 	EndIf
-	
+
 	/*EXEMPLO 02*/
-	 /*Definir a tabela*/
-	 oSql:addFromTab('SZS')
-	 /*Os campos da tabela*/
-	 oSql:addCampos({'ZS_CODIGO','ZS_NOME'})
-	 /*As condições podem ser escritas numa mesma string, bem como adicionadas uma a uma*/
-	 oSql:addWhere("ZS_ATIVO = 'S'")
-	 /*Por default o segundo paramtero é AND, não precisa informar caso seja OR informar*/
-	 oSql:addWhere("ZS_CODIGO <> '' ",'AND')
-	 /*Definir a ordem recebe array com a ordem desejada e o segundo parametro recebe o tipo da
-	 ordem ASC ou DESC*/
-	 oSql:addOrder({'ZS_CODIGO'},'DESC')
-	 /*Executar o select*/
-	 if oSql:QrySelect():lOk	
+	/*Definir a tabela*/
+	oSql:addFromTab('SZS')
+	/*Os campos da tabela*/
+	oSql:addCampos({'ZS_CODIGO','ZS_NOME'})
+	/*As condições podem ser escritas numa mesma string, bem como adicionadas uma a uma*/
+	oSql:addWhere("ZS_ATIVO = 'S'")
+	/*Por default o segundo paramtero é AND, não precisa informar caso seja OR informar*/
+	oSql:addWhere("ZS_CODIGO <> '' ",'AND')
+	/*Definir a ordem recebe array com a ordem desejada e o segundo parametro recebe o tipo da
+	ordem ASC ou DESC*/
+	oSql:addOrder({'ZS_CODIGO'},'DESC')
+	/*Executar o select*/
+	if oSql:QrySelect():lOk	
 		/*Mostra a query que foi enviada*/
 		MessageBox("Query enviada: " + oSql:qryForSend , "Aviso",48)
 		/*Mostra quantos registros retornaram*/
 		MessageBox("Consulta Retornou: " + cValToChar(oSql:nRegCount) , "Aviso",48)
-		
+
 		/*Percorrer os registro*/
 		For nX := 1 To oSql:nRegCount
 			/*O Retorno sempre gera um objeto "oSql:oRes" onde cada registro fica em uma posição
@@ -106,11 +106,11 @@ Local nX	:= 0
 		/*Caso exista algum erro exibir a mensagem de erro*/
 		MessageBox(oSql:cMsgErro, "Aviso",48)
 	EndIf
-	
+
 	/*EXEMPLO 03 Todos os metodos retornam o self desta forma podemos encadiar os metodos conforme exemplo
 	abaixo, repare que as condições where estão definidas em uma unica chamada ao addWhere */
 	if oSql:addFromTab('SZS'):addCampos({'ZS_CODIGO','ZS_NOME'}):addWhere("ZS_ATIVO = 'S' AND ZS_CODIGO <> ''"):QrySelect():lOk
-		
+
 		MessageBox("Query enviada: " + oSql:qryForSend , "Aviso",48)
 		MessageBox("Consulta Retornou: " + cValToChar(oSql:nRegCount) , "Aviso",48)
 		For nX := 1 To oSql:nRegCount
@@ -119,5 +119,53 @@ Local nX	:= 0
 	Else
 		MessageBox(oSql:cMsgErro, "Aviso",48)
 	EndIf
-	
+
+	/* EXEMPLO IMPORTANTE PARA QUE SE RETORNE O R_E_C_N_O_
+	::oSql:addCampos({'SC6.R_E_C_N_O_','C6_PRODUTO','C6_ITEM','C6_TES','C6_QTDVEN','C6_PRCVEN','C6_VALOR'})
+	*/
+
 Return (Nil)
+
+/****************** Exemplos da CLASSE FileSystem **************************/
+User Function fileSys()
+Local oFS	 := FileSystem():newFileSystem()
+
+//Comprimir arquivo
+oFS:compress('cPath' + 'cNameFile' + '.pdf')
+				
+//Descomprimir arquivos
+oFS:uncompress()
+
+return .T.
+
+/******************  Exemplos da CLASSE SendEmail **************************/
+User Function vaiEmail()
+	Local oEmail 	:= cbcSendEmail():newcbcSendEmail()
+	Local lOk		:= .T.
+	Local cMsg		:= ""
+	
+	If !oEmail:lOk
+		lOk 	:= oEmail:lOk
+		cMsg	:= oEmail:cMsg
+		u_autoAlert(cMsg)
+	Else
+		oEmail:setFrom('remetente@dominio.com.br')
+		oEmail:setTo("destinatario@dominio.com.br")
+		oEmail:setcCc("copia@dominio.com")
+		oEmail:setcBcc("")
+		oEmail:setcSubject("[EMPRESA] - Assunto do Email. ")
+		oEmail:setcBody("Texto Simples a exibir no corpo do email")			
+
+		If ! oEmail:addAtach('\arquivo.txt'):lOk
+			lOk 	:= oEmail:lOk
+			cMsg	:= oEmail:cMsg
+			u_autoAlert(cMsg)
+		Else
+			If !oEmail:goToEmail():lOk
+				lOk 	:= oEmail:lOk
+				cMsg	:= oEmail:cMsg
+				u_autoAlert(cMsg)
+			EndIf
+		EndIf
+	EndIf
+return ({lOk,cMSg})
