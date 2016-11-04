@@ -1,5 +1,8 @@
 #include 'protheus.ch'
 
+#define NOME_CAMPO				1
+#define VALOR_CAMPO				2
+
 class cbcSendEmail 
 
 	data lOk
@@ -36,6 +39,7 @@ class cbcSendEmail
 	method setcBody()
 	method setPriority()
 	method setConfReader()
+	method setHtmlBody()
 
 	method getErrTxt()
 	method isErr()
@@ -43,7 +47,6 @@ class cbcSendEmail
 endclass
 
 //TODO metodo para enviar body html em estilo de lista (TD/TR) (Header/Cols)
-//TODO metodo para carregar em body um arquivo externo de html (Trocando variaveis)
 
 method newcbcSendEmail(cMailConta,cMailServer,cMailSenha, nPorta) class cbcSendEmail
 	Default cMailConta	:= Nil
@@ -144,13 +147,60 @@ return (self)
 
 /*Getters e Setters*/
 
+method setHtmlBody(cFile, aCmps, aLoop) class cbcSendEmail
+	Local oHtml		:= Nil
+	Local nH		:= 0
+	Local nL		:= 0
+	Local nI		:= 0
+	Local cCampo	:= ""
+	Local xValor	:= Nil
+	Local bErro 
+	Default cFile	:= '\espelhoPedido\html\Espelho_pedido.htm'
+	Default aCmps	:= {}
+	Default aLoop	:= {}
+	::lOk	:= .T.
+	::cMsg	:= ""
+	
+	If Empty(aCmps) .And. Empty(aLoop) 
+		::lOk	:= .F.
+		::cMsg	:= "[ERRO] - Parametros (aCmps ou aLoop) um dos dois precisa existir cbcSendEmail():setHtmlBody(), "
+	Else
+		bErro	:= ErrorBlock({|oErr| HandleEr(oErr)})
+		BEGIN SEQUENCE		
+			oHtml :=  TWFHtml():new(cFile)
+			//HEADER
+			If !Empty(aCmps)
+				For nH := 1 to Len(aCmps)	
+						oHtml:Valbyname(aCmps[nH][NOME_CAMPO],aCmps[nH][VALOR_CAMPO])
+				Next
+			EndIF
+			//LINHAS
+			If !Empty(aLoop)
+				For nL := 1 to Len(aLoop)	
+					For nI :=  1 To Len(aLoop[nL])
+						_cCampo := aLoop[nL][nI][NOME_CAMPO]
+						_xValor := aLoop[nL][nI][VALOR_CAMPO]
+						If oHtml:Retbyname(_cCampo) != Nil
+							aadd(oHtml:Valbyname(_cCampo) , _xValor )
+						EndIf 							
+					Next 
+				Next
+			EndIF
+			::oMessage:cBody := oHtml:HtmlCode()
+			FreeObj(oHtml)
+			RECOVER
+		END SEQUENCE
+		ErrorBlock(bErro)   
+	EndIF
+return (self)
+
 method setConfReader(lConf) class cbcSendEmail
-Default lConf := .F.
-::oMessage:SetConfirmRead(lConf)
+	Default lConf := .F.
+	::oMessage:SetConfirmRead(lConf)
 return (self)
 
 method setPriority(nPri) class cbcSendEmail
-Default nPri := 0
+	Default nPri := 0
 	If nPri < 1 .Or.  nPri > 5
 		::oMessage:nXPriority := 3
 	Else
@@ -242,4 +292,15 @@ static function showConsoleMsg(cMsg, oSelf)
 	" Assunto: " 		+ oSelf:getcSubject()+;
 	" Enviado para:" 	+ oSelf:getTo() +;   
 	" Ocorrência: "    + cMsg )
+return
+
+
+Static function HandleEr(oErr)
+	ConsoleLog('[' + oErr:Description + ']' + oErr:ERRORSTACK)
+	u_autoAlert('[' + oErr:Description + ']' + oErr:ERRORSTACK,,'Box',,48)
+	BREAK
+return
+
+static function ConsoleLog(cMsg)
+	ConOut("[Classe SendEmail - Html Body - "+DtoC(Date())+" - "+Time()+" ] "+ cMsg) 
 return

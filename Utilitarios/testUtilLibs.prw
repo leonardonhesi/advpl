@@ -143,26 +143,83 @@ User Function vaiEmail()
 	Local oEmail 	:= cbcSendEmail():newcbcSendEmail()
 	Local lOk		:= .T.
 	Local cMsg		:= ""
+	Local aCmps 	:= {}
+	Local aLoop 	:= {}
 	
 	If !oEmail:lOk
 		lOk 	:= oEmail:lOk
 		cMsg	:= oEmail:cMsg
 		u_autoAlert(cMsg)
 	Else
+		
 		oEmail:setFrom('remetente@dominio.com.br')
 		oEmail:setTo("destinatario@dominio.com.br")
 		oEmail:setcCc("copia@dominio.com")
 		oEmail:setcBcc("")
 		oEmail:setcSubject("[EMPRESA] - Assunto do Email. ")
-		oEmail:setcBody("Texto Simples a exibir no corpo do email")			
 		oEmail:setPriority(5) // 1 até 5
 		oEmail:setConfReader(.T.) //Confirmação de leitura
+		
+		/*Definir o Body de forma simples (aceita tags Html)*/
+		oEmail:setcBody("Texto Simples a exibir no corpo do email")			
+		
+		
+		/***************************** BODY HTML *************************/
+		/*Definir o Body, atraves de um arquivo modelo escrito em (html/css)*/
+		/*
+		//ATRIBUIÇÂO DE VALORES A CAMPOS, NO HTML UTILIZAR "!TAG!",  PARA
+		//SUBSTITUIR VIA CODIGO (BIND DADOS)
+		<Fieldset>
+		<legend>Dados do Faturamento</legend>
+		<b>Representante:</b> !A3_NOME!	<br />
+		<b>Serie/ Documento:</b> !F2_SERIE!/!F2_DOC!<br />
+		<b>Emissão:</b> !F2_EMISSAO!<br /><br />
+		<fieldset>
+			<legend>Dados do Cliente</legend>
+			<b>Código/ Loja:</b> !A1_COD!/ !A1_LOJA! <br/>
+			<b>Nome:</b> !A1_NOME!<br/>
+			<b>E-mail:</b> !A1_EMAIL!<br/>
+		</fieldset>
+		</Fieldset>
+		//Segue exemplo para atribuir valor ao modelo HTML acima
+		*/
+		Aadd(aCmps, {'A3_NOME','NOME TESTE'})
+		Aadd(aCmps, {'F2_SERIE','SERIE TESTE'})
+		Aadd(aCmps, {'F2_DOC','DOC TESTE'})
+		
+		/*
+		//ATRIBUIR VALORES A LISTAS DE DADOS (NO HTML UTILIZAR TAG %t1.1%,%t1.2% PARA DEFINIR O CONTEUDO DE CADA LINHA)
+		 <table width="100%" border= 0>
+        <tr>
+	        
+			<th style="border:1px solid #EAEAEA; text-align: left" class="style1">Cod.</th>
+	        <th style="border:1px solid #EAEAEA; text-align: left" class="style1">Descri.</th>
+			<th style="border:1px solid #EAEAEA; text-align: left" class="style1">Qtde.</th>
+        </tr>
+        <tr>
+	        <td style="border:1px solid #EAEAEA; text-align: left" class="style8">%t1.1%</td>
+            <td style="border:1px solid #EAEAEA; text-align: left" class="style8">%t1.2%</td>
+			<td style="border:1px solid #EAEAEA; text-align: left" class="style8">%t1.3%</td>
+        </tr>
+        </table>
+		//EXEMPLO PARA ACRESCENTAR DUAS LINHAS AO MODELO HTML ACIMA
+		*/
+		Aadd(aLinha, { {'t1.1','Cod1'}, {'t1.2','Descr1'},{'t1.3','Qtde1'} })
+		Aadd(aLinha, { {'t1.1','Cod2'}, {'t1.2','Descr2'},{'t1.3','Qtde3'} })
+		Aadd(aLoop, aLinha)
+		
 
+		/*SETAR AS INFORMAÇÔES PARA O BODY*/
+		oEmail:setHtmlBody('espelhoPedido\html\Espelho_pedido.htm', aCmps, aLoop)
+		/***************************** FIM BODY HTML *************************/
+
+		/*ADICIONAR ANEXOS AO EMAIL*/
 		If ! oEmail:addAtach('\arquivo.txt'):lOk
 			lOk 	:= oEmail:lOk
 			cMsg	:= oEmail:cMsg
 			u_autoAlert(cMsg)
 		Else
+			/*ENVIAR O EMAIL*/
 			If !oEmail:goToEmail():lOk
 				lOk 	:= oEmail:lOk
 				cMsg	:= oEmail:cMsg
