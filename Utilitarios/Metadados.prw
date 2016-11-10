@@ -34,7 +34,6 @@ class ManBaseDados
 	method updTable()
 	method isAuto()
 	method allOk()
-	
 
 endclass
 
@@ -186,7 +185,7 @@ method addKey(aChave)   class ManBaseDados
 return ::allOk()
 
 
- 
+
 method addCpoVlr(cCampo,cValor) class ManBaseDados
 	Local cPref 	:= ""
 	Local cTpVlr	:= ""
@@ -263,7 +262,7 @@ method updTable(nRec) class ManBaseDados
 					cTabAli := aCampo[nX,2] 
 					If ValType(aCampo[nX,3]) == 'C'
 						cVlr 	:= " '" + aCampo[nX,3] + "' "
-					//TODO Testar quando for campo de data
+						//TODO Testar quando for campo de data
 					Else
 						cVlr 	:= cValToChar(aCampo[nX,3])
 					endIf

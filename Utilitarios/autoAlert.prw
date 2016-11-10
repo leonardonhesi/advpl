@@ -3,6 +3,14 @@
 #include "TOPCONN.ch"
 #include "protheus.ch"
 
+
+User Function isDivid()
+Local lRet		:= .F.
+If Type('lIsJobAuto') <> 'U'
+	lRet := .T.
+EndIf
+return lRet 
+
 /*/{Protheus.doc} isAuto
 @author bolognesi
 @since 19/10/2016

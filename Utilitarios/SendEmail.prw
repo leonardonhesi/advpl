@@ -168,6 +168,7 @@ method setHtmlBody(cFile, aCmps, aLoop) class cbcSendEmail
 		bErro	:= ErrorBlock({|oErr| HandleEr(oErr)})
 		BEGIN SEQUENCE		
 			oHtml :=  TWFHtml():new(cFile)
+					
 			//HEADER
 			If !Empty(aCmps)
 				For nH := 1 to Len(aCmps)	
@@ -255,7 +256,7 @@ static Function defMessage(oSelf)
 	oSelf:oMessage:cCc    		:= ""
 	oSelf:oMessage:cBcc			:= ""
 	oSelf:oMessage:cSubject 	:= "[IFC-COBRECOM] - Envio de Email
-	oSelf:oMessage:cBody        := "Segue o e-mail"
+	oSelf:oMessage:cBody        := "Segue o e-mail"       
 return (oSelf)
 
 static Function defServer(oSelf) 
@@ -288,9 +289,9 @@ static Function defServer(oSelf)
 return (oSelf)
 
 static function showConsoleMsg(cMsg, oSelf)
-	ConOut("[Classe SendEmail - "+ DtoC(Date())+" - "+Time()+" ]  - " +;
-	" Assunto: " 		+ oSelf:getcSubject()+;
-	" Enviado para:" 	+ oSelf:getTo() +;   
+	ConOut("[Classe SendEmail - "+ DtoC(Date())+" - "+Time()+" ]  - " +;	
+	" Assunto: " 		+ IIF(oSelf:oMessage == Nil,"",oSelf:getcSubject())+;
+	" Enviado para:" 	+ IIF(oSelf:oMessage == Nil,"",oSelf:getTo())+;   
 	" Ocorrência: "    + cMsg )
 return
 
